@@ -44,4 +44,12 @@ Then start the server
 python3 main.py
 ```
 
+The server will listen 7880 for Web server and 7881 for WebSocket server
+
 After server started, use Chrome browser open `http://127.0.0.1:7880`
+
+## Technologies
+
+* Speech Recognition and translate: Whisper.cpp and whisper-cpp-python
+* Speech to Text: coqui-ai/TTS
+* Web and WebSocket: flask, websockets
