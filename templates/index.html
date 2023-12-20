@@ -1,0 +1,88 @@
+<html>
+<head>
+    <title>Voice Translator</title>
+    <!-- Libs -->
+    <script src="/static/jquery-3.7.1.min.js"></script>
+    <script src="/static/axios.min.js"></script>
+    <script src="/static/audio-recorder.js"></script>
+    <script src="/static/pcm-player.js"></script>
+    <!-- API -->
+    <script src="/static/api.js"></script>
+    <!-- Voice Recorder -->
+    <script src="/static/speech.js"></script>
+    <!-- Player -->
+    <script src="/static/player.js"></script>
+</head>
+<body>
+    <h1>Voice Translator</h1>
+    <div>
+    <button id="speech-btn">Record</button>
+    <button id="play-btn">Play</button>
+    </div>
+    <div>
+    <textarea id="output" style="width: 80%; height: 80%"></textarea>
+    </div>
+
+<!-- Local Codes -->
+<script>
+$(function() {
+    var rbtn = $('#speech-btn');
+    var pbtn = $('#play-btn');
+    var tout = $('#output');
+    var startPlaying = false;
+    var ws_port = window.location.port - 0 + 1;
+
+    setSpeechEventListener('ontext', function(ev) {
+        console.log(ev);
+        tout.val(ev);
+        rbtn.html('Record')
+        rbtn.removeAttr('disabled');
+        pbtn.click();
+    });
+
+    setSpeechEventListener('onstop', function() {
+        rbtn.html('Record')
+        rbtn.removeAttr('disabled');
+    });
+
+    setSpeechEventListener('onuploading', function() {
+        rbtn.html('...')
+        rbtn.attr('disabled', 'disabled');
+    });
+
+    setPlayerEventListener('onstartplay', function() {
+        pbtn.html('Stop');
+    });
+
+    setPlayerEventListener('onstopplay', function() {
+        pbtn.html('Play');
+    });
+
+    rbtn.on('click', function() {
+        if (inRecording) {
+            // Stop record
+            stopRecord();
+        } else {
+            // Start record
+            rbtn.html('Stop');
+            startRecord();
+        }
+    });
+
+    pbtn.on('click', function() {
+        var text = tout.val();
+        if (text === '') {
+            return;
+        }
+        const url = 'ws://' + location.hostname + ':' + ws_port + '/tts';
+        if (startPlaying) {
+            stopPlay();
+        } else {
+            console.log('Call start play');
+            startPlay(url, {'text': text});
+        }
+    });
+})
+</script>
+</body>
+</html>

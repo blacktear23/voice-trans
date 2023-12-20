@@ -1,0 +1,5 @@
+*.pyc
+config.py
+*.tmp
+*.txt
+.DS_Store
