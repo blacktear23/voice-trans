@@ -25,4 +25,4 @@ if __name__ == '__main__':
     port = 7880
     wst = WSThread(host, port + 1)
     wst.start()
-    server.start_server(host, port, False)
+    server.start_server(host, port, True)

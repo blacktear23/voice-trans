@@ -32,7 +32,7 @@ function startRecord() {
     });
 }
 
-function stopRecord() {
+function stopRecord(translate) {
     if (!recorder) {
         alert('Not Support');
         return;
@@ -44,11 +44,11 @@ function stopRecord() {
         if (onStopRecord !== null) {
             onStopRecord();
         }
-        uploadAndDestroy();
+        uploadAndDestroy(translate);
     }
 }
 
-function uploadAndDestroy() {
+function uploadAndDestroy(translate) {
     if (inRecording) {
         return;
     }
@@ -59,7 +59,14 @@ function uploadAndDestroy() {
         if (onUploading !== null) {
             onUploading();
         }
-        upload_voice(formData).then((resp) => {
+        var future = null;
+        if (translate) {
+            future = upload_voice(formData);
+        } else {
+            future = upload_voice_transcribe(formData);
+        }
+
+        future.then((resp) => {
             if (resp.status === 200) {
                 const data = resp.data;
                 const text = data.text;

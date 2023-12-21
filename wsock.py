@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 os.environ.setdefault('OMP_NUM_THREADS', '8')
 task_executer = ThreadPoolExecutor(max_workers=8)
 __tts__ = None
+__ctts__ = None
 
 
 class TTSBuffer(object):
@@ -32,10 +33,13 @@ class TTSBuffer(object):
 
 
 class TTSDriver(object):
-    def __init__(self):
+    def __init__(self, chinese=False):
         try:
             from TTS.api import TTS
-            model = config.TTS_MODEL
+            if chinese:
+                model = config.CHINESE_TTS_MODEL
+            else:
+                model = config.TTS_MODEL
             self.tts = TTS(model).to('cpu')
         except Exception:
             self.tts = None
@@ -65,8 +69,15 @@ class TTSDriver(object):
 def get_tts():
     global __tts__
     if __tts__ is None:
-        __tts__ = TTSDriver()
+        __tts__ = TTSDriver(False)
     return __tts__
+
+
+def get_chinese_tts():
+    global __ctts__
+    if __ctts__ is None:
+        __ctts__ = TTSDriver(True)
+    return __ctts__
 
 
 def text_spliter_processor(text):
@@ -83,10 +94,13 @@ def text_spliter_processor(text):
     return resp
 
 
-def tts_processor(text):
+def tts_processor(text, chinese):
     pid = os.getpid()
     print(f'PID {pid:<10} TTS Processor: {text}')
-    tts = get_tts()
+    if chinese:
+        tts = get_chinese_tts()
+    else:
+        tts = get_tts()
     return tts.text_to_pcm(text)
 
 
@@ -127,7 +141,7 @@ async def convert_wav_to_aac(wav_data, sample_rate):
 def process_request(json_message):
     try:
         jdata = json.loads(json_message)
-        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600)
+        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600), jdata.get('chinese', False)
     except Exception as e:
         logging.exception(e)
         return None
@@ -147,7 +161,7 @@ async def listener(websocket, path):
     tasks = []
     loop = asyncio.get_running_loop()
     async for json_message in websocket:
-        message, out_fmt, out_sample_rate = process_request(json_message)
+        message, out_fmt, out_sample_rate, chinese = process_request(json_message)
         if message is None or message == '':
             logging.info('Bad Request: empty text')
             await response_error(websocket, 'Empty text')
@@ -182,7 +196,7 @@ async def listener(websocket, path):
             }))
             for text in texts:
                 ntasks = [
-                    loop.run_in_executor(task_executer, tts_processor, text)
+                    loop.run_in_executor(task_executer, tts_processor, text, chinese)
                 ]
                 for nt in asyncio.as_completed(ntasks):
                     data = await nt

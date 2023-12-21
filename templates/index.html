@@ -77,7 +77,7 @@ $(function() {
     rbtn.on('click', function() {
         if (inRecording) {
             // Stop record
-            stopRecord();
+            stopRecord(true);
         } else {
             // Start record
             rbtn.html('Stop <i class="bi bi-stop-fill"></i>');
