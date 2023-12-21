@@ -1,2 +1,4 @@
 WHISPER_MODEL_PATH = '/data/models/ggml-medium.bin'
 TTS_MODEL = 'tts_models/en/ljspeech/vits'
+CHINESE_TTS_MODEL = 'tts_models/zh-CN/baker/tacotron2-DDC-GST'
+LLM_MODEL_PATH = '/data/models/chatglm-ggml-32k.bin'

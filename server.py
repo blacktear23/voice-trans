@@ -1,6 +1,5 @@
 import config
 import logging
-import chatglm_cpp
 from datetime import datetime
 from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template
@@ -14,7 +13,11 @@ __chatglm__ = None
 def get_llm():
     global __chatglm__
     if __chatglm__ is None:
-        __chatglm__ = chatglm_cpp.Pipeline(config.LLM_MODEL_PATH)
+        try:
+            import chatglm_cpp
+            __chatglm__ = chatglm_cpp.Pipeline(config.LLM_MODEL_PATH)
+        except Exception:
+            pass
     return __chatglm__
 
 
@@ -74,6 +77,11 @@ def chat_msg():
 
 
 def generate_chat_response(prompt):
+    try:
+        import chatglm_cpp
+    except Exception:
+        return 'Cannot Load ChatGLM'
+
     llm = get_llm()
     params = {
         'max_length': 4096,
