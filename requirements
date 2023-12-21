@@ -1,4 +1,4 @@
-flask
-websockets
-whisper-cpp-python
-TTS
+Flask==3.0.0
+websockets==11.0.3
+whisper-cpp-python==0.2.0
+TTS==0.20.6
