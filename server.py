@@ -9,6 +9,8 @@ app = Flask(__name__)
 __whisper__ = None
 __chatglm__ = None
 
+PROMPT_TPL = '把以下英文翻译成中文: {prompt}'
+
 
 def get_llm():
     global __chatglm__
@@ -56,7 +58,7 @@ def speech_to_text_transcribe():
         return 'Require file parameter', 400
     try:
         whisper = get_whisper_engine()
-        resp = whisper.transcribe(wav_file, language='zh')
+        resp = whisper.transcribe(wav_file, language='auto')
         return jsonify(resp)
     except Exception as e:
         logging.exception(e)
@@ -76,11 +78,17 @@ def chat_msg():
     return jsonify({'text': resp})
 
 
+def apply_template(prompt):
+    return PROMPT_TPL.replace('{prompt}', prompt)
+
+
 def generate_chat_response(prompt):
     try:
         import chatglm_cpp
     except Exception:
         return 'Cannot Load ChatGLM'
+
+    prompt = apply_template(prompt)
 
     llm = get_llm()
     params = {
