@@ -1,8 +1,8 @@
 var onChatText = null;
 var onChatError = null;
 
-function chat_message(message) {
-    submit_chat(message).then((resp) => {
+function chat_message(message, tpl) {
+    submit_chat(message, tpl).then((resp) => {
         if (resp.status == 200) {
             const data = resp.data;
             const text = data.text;
@@ -29,4 +29,17 @@ function setChatEventListener(event, handler) {
     } else if (event === 'onerror') {
         onChatError = handler;
     }
+}
+
+var prebuild_prompt_templates = {
+    'empty': '',
+    'trans-eng': '请把以下句子翻译成英文: {prompt}',
+    'trans-chn': '请把以下句子翻译成中文: {prompt}',
+}
+
+function get_prebuild_prompt_template(key) {
+    if (prebuild_prompt_templates.hasOwnProperty(key)) {
+        return prebuild_prompt_templates[key];
+    }
+    return null;
 }

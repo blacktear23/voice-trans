@@ -9,7 +9,7 @@ app = Flask(__name__)
 __whisper__ = None
 __chatglm__ = None
 
-PROMPT_TPL = '把以下英文翻译成中文: {prompt}'
+PROMPT_TPL = '{prompt}'
 
 
 def get_llm():
@@ -74,21 +74,24 @@ def chat():
 def chat_msg():
     data = request.json
     prompt = data['prompt']
-    resp = generate_chat_response(prompt)
+    prompt_tpl = data.get('prompt_template', PROMPT_TPL)
+    resp = generate_chat_response(prompt, prompt_tpl)
     return jsonify({'text': resp})
 
 
-def apply_template(prompt):
-    return PROMPT_TPL.replace('{prompt}', prompt)
+def apply_template(prompt, prompt_tpl):
+    if '{prompt}' in prompt_tpl:
+        return prompt_tpl.replace('{prompt}', prompt)
+    return prompt_tpl + prompt
 
 
-def generate_chat_response(prompt):
+def generate_chat_response(prompt, prompt_tpl):
     try:
         import chatglm_cpp
     except Exception:
         return 'Cannot Load ChatGLM'
 
-    prompt = apply_template(prompt)
+    prompt = apply_template(prompt, prompt_tpl)
 
     llm = get_llm()
     params = {

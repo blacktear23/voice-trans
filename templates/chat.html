@@ -19,16 +19,16 @@
     <script src="/static/chat.js"></script>
 </head>
 <body>
-    <div class="container text-center">
-        <div class="row">
+    <div class="container">
+        <div class="row text-center">
             <h1>Voice Chat</h1>
         </div>
-        <div class="row" style="height: 60%">
+        <div class="row" style="height: 60%; margin-top: 6px;">
             <textarea class="form-control" id="output" style="width: 100%; height: 100%"></textarea>
             <input id="tts-text" type="hidden"/>
         </div>
         <div class="row" style="margin-top: 10px;">
-            <div class="text-center">
+            <div class="text-center col-7">
                 <div class="input-group">
                     <button id="speech-btn" type="button" class="btn btn-outline-primary">
                         <i class="bi bi-mic-fill"></i>
@@ -42,6 +42,25 @@
                     </button>
                 </div>
             </div>
+            <div class="col-5">
+                <div class="row">
+                    <label for="prompt-template" class="col-4 form-label">Prompt Template</label>
+                    <div class="col-4">
+                        <select class="form-select form-select-sm" id="prebuild-prompt-template" aria-label="Empty">
+                          <option value="empty" selected>Empty</option>
+                          <option value="trans-eng">Translate To English</option>
+                          <option value="trans-chn">Translate To Chinese</option>
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" role="switch" id="auto-play" checked="checked">
+                          <label class="form-check-label" for="auto-play">Auto Play</label>
+                        </div>
+                    </div>
+                </div>
+                <textarea class="form-control" id="prompt-template" style="width: 100%; height: 100%"></textarea>
+            </div>
         </div>
     </div>
 <!-- Local Codes -->
@@ -51,9 +70,15 @@ $(function() {
     var tout = $('#output');
     var sbtn = $('#submit-btn');
     var pbtn = $('#play-btn');
+    var spbptpl = $('#prebuild-prompt-template');
+    var tptpl = $('#prompt-template');
     var iprompt = $('#prompt');
     var startPlaying = false;
     var ws_port = window.location.port - 0 + 1;
+
+    function is_auto_play() {
+        return $('#auto-play').is(':checked');
+    }
 
     setSpeechEventListener('ontext', function(ev) {
         // console.log(ev);
@@ -90,6 +115,14 @@ $(function() {
         tout.val(mtxt);
     }
 
+    spbptpl.on('change', function() {
+        var value = spbptpl.val();
+        var ptpl = get_prebuild_prompt_template(value);
+        if (ptpl !== null) {
+            tptpl.val(ptpl);
+        }
+    });
+
     rbtn.on('click', function() {
         if (inRecording) {
             // Stop record
@@ -107,7 +140,9 @@ $(function() {
         iprompt.val('');
         sbtn.removeAttr('disabled');
         iprompt.removeAttr('disabled');
-        pbtn.click();
+        if (is_auto_play()) {
+            pbtn.click();
+        }
     });
 
     setChatEventListener('onerror', function(err) {
@@ -121,10 +156,11 @@ $(function() {
         if (sprompt.trim() === '') {
             return;
         }
+        var prompt_tpl = tptpl.val();
         sbtn.attr('disabled', 'disabled');
         iprompt.attr('disabled', 'disabled');
         add_message('User', sprompt);
-        chat_message(sprompt);
+        chat_message(sprompt, prompt_tpl);
     });
 
     iprompt.keypress(function(e) {
