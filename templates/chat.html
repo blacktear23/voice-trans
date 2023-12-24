@@ -76,6 +76,34 @@ $(function() {
     var startPlaying = false;
     var ws_port = window.location.port - 0 + 1;
 
+    function load_prompt_templates() {
+        get_prompt_templates().then((resp) => {
+            if (resp.status == 200) {
+                const tpls = resp.data;
+                console.log(tpls);
+                prebuild_prompt_templates = {}
+                $('#prebuild-prompt-template').html('');
+                var html = ''
+                var first = true;
+                for (var tpl of tpls) {
+                    prebuild_prompt_templates[tpl.key] = tpl.prompt;
+                    var checked_str = '';
+                    if (first) {
+                        checked_str = 'selected';
+                        first = false;
+                    }
+                    html += '<option value="' + tpl.key + '"' + checked_str + '>' + tpl.name + '</option>'
+                }
+                $('#prebuild-prompt-template').html(html);
+            } else {
+                console.log('Error');
+            }
+        }).catch((err) => {
+            console.log(err);
+        });
+    }
+
+
     function is_auto_play() {
         return $('#auto-play').is(':checked');
     }
@@ -193,6 +221,9 @@ $(function() {
             startPlaying = true;
         }
     }
+
+    // Preload web page
+    load_prompt_templates();
 });
 </script>
 </body>

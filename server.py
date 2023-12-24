@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template
+from prompt_templates import PROMPT_TPLS
 
 
 app = Flask(__name__)
@@ -82,6 +83,11 @@ def chat_msg():
     prompt_tpl = data.get('prompt_template', PROMPT_TPL)
     resp = generate_chat_response(prompt, prompt_tpl)
     return jsonify({'text': resp})
+
+
+@app.route('/prompt_templates')
+def prompt_tpls():
+    return jsonify(PROMPT_TPLS)
 
 
 def apply_template(prompt, prompt_tpl):
