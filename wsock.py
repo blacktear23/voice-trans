@@ -1,4 +1,5 @@
 import io
+import re
 import os
 import uuid
 import json
@@ -132,6 +133,15 @@ async def convert_wav_to_aac(wav_data, sample_rate):
         return data
 
 
+def check_message_has_chinese(text: str) -> bool:
+    if text.strip() == '':
+        return False
+
+    if re.search(u'[\u4e00-\u9fff]', text):
+        return True
+    return False
+
+
 # Request parameters:
 # {
 #   'text': string, Request text
@@ -141,7 +151,8 @@ async def convert_wav_to_aac(wav_data, sample_rate):
 def process_request(json_message):
     try:
         jdata = json.loads(json_message)
-        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600), jdata.get('chinese', False)
+        has_chinese = check_message_has_chinese(jdata['text'])
+        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600), has_chinese
     except Exception as e:
         logging.exception(e)
         return None
