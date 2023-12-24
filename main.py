@@ -19,6 +19,13 @@ class WSThread(Thread):
         self.loop = loop
         wsock.run_server(self.host, self.port)
 
+    async def stop_loop(self):
+        self.loop.stop()
+
+    def kill(self):
+        if self.loop is not None:
+            self.loop.call_soon_threadsafe(self.loop.stop)
+
 
 if __name__ == '__main__':
     host = '127.0.0.1'
@@ -26,3 +33,4 @@ if __name__ == '__main__':
     wst = WSThread(host, port + 1)
     wst.start()
     server.start_server(host, port, True)
+    wst.kill()
