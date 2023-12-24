@@ -23,12 +23,14 @@ def get_llm():
     return __chatglm__
 
 
-def get_whisper_engine():
+def get_whisper_engine(language=None):
     global __whisper__
     if __whisper__ is None:
         model = config.WHISPER_MODEL_PATH
         __whisper__ = Whisper(model_path=model, n_threads=4)
-        __whisper__.params.language = 'zh'.encode('utf-8')
+        __whisper__.params.language = 'auto'.encode('utf-8')
+    if language is not None:
+        __whisper__.params.language = language.encode('utf-8')
     return __whisper__
 
 
@@ -42,6 +44,9 @@ def speech_to_text_translate():
     wav_file = request.files.get('file', None)
     if wav_file is None:
         return 'Require file parameter', 400
+    language = request.form.get('language', 'auto')
+    print(language)
+    print(request.form)
     try:
         whisper = get_whisper_engine()
         resp = whisper.translate(wav_file, 'translate into English')

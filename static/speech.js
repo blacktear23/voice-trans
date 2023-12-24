@@ -32,7 +32,7 @@ function startRecord() {
     });
 }
 
-function stopRecord(translate) {
+function stopRecord(translate, language) {
     if (!recorder) {
         alert('Not Support');
         return;
@@ -44,11 +44,11 @@ function stopRecord(translate) {
         if (onStopRecord !== null) {
             onStopRecord();
         }
-        uploadAndDestroy(translate);
+        uploadAndDestroy(translate, language);
     }
 }
 
-function uploadAndDestroy(translate) {
+function uploadAndDestroy(translate, language) {
     if (inRecording) {
         return;
     }
@@ -56,6 +56,7 @@ function uploadAndDestroy(translate) {
         let blob = recorder.getWAVBlob();
         let formData = new FormData();
         formData.append('file', blob);
+        formData.append('language', language);
         if (onUploading !== null) {
             onUploading();
         }

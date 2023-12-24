@@ -34,6 +34,12 @@
                     Play
                     <i class="bi bi-play-fill"></i>
                 </button>
+                <label for="language" class="form-label" style="margin-left: 15px;">Speech Language:</label>
+                <select class="form-select form-select-sm" id="language" aria-label="Empty" style="width: 100px;display:inline-block;">
+                          <option value="auto" selected>Auto</option>
+                          <option value="zh">Chinese</option>
+                          <option value="en">English</option>
+                </select>
             </div>
         </div>
     </div>
@@ -77,7 +83,7 @@ $(function() {
     rbtn.on('click', function() {
         if (inRecording) {
             // Stop record
-            stopRecord(true);
+            stopRecord(true, get_language());
         } else {
             // Start record
             rbtn.html('Stop <i class="bi bi-stop-fill"></i>');
@@ -104,6 +110,10 @@ $(function() {
             startPlaying = true;
         }
     });
+
+    function get_language() {
+        return $('#language').val();
+    }
 })
 </script>
 </body>
