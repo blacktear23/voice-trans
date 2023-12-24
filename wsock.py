@@ -10,7 +10,7 @@ import logging
 import websockets
 import hashlib
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
 
 os.environ.setdefault('OMP_NUM_THREADS', '8')
@@ -85,7 +85,11 @@ def text_spliter_processor(text):
     pid = os.getpid()
     print(f'PID {pid:<10} Text Spliter Processor')
 
-    tts = get_tts()
+    has_chinese = check_message_has_chinese(text)
+    if has_chinese:
+        tts = get_chinese_tts()
+    else:
+        tts = get_tts()
     resp = {
         'sample_rate': tts.get_sample_rate(),
         'texts': tts.split_sentences(text),
@@ -95,10 +99,11 @@ def text_spliter_processor(text):
     return resp
 
 
-def tts_processor(text, chinese):
+def tts_processor(text):
     pid = os.getpid()
     print(f'PID {pid:<10} TTS Processor: {text}')
-    if chinese:
+    has_chinese = check_message_has_chinese(text)
+    if has_chinese:
         tts = get_chinese_tts()
     else:
         tts = get_tts()
@@ -151,8 +156,7 @@ def check_message_has_chinese(text: str) -> bool:
 def process_request(json_message):
     try:
         jdata = json.loads(json_message)
-        has_chinese = check_message_has_chinese(jdata['text'])
-        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600), has_chinese
+        return jdata['text'], jdata.get('format', 'pcm'), jdata.get('sample_rate', 1600)
     except Exception as e:
         logging.exception(e)
         return None
@@ -172,7 +176,7 @@ async def listener(websocket, path):
     tasks = []
     loop = asyncio.get_running_loop()
     async for json_message in websocket:
-        message, out_fmt, out_sample_rate, chinese = process_request(json_message)
+        message, out_fmt, out_sample_rate = process_request(json_message)
         if message is None or message == '':
             logging.info('Bad Request: empty text')
             await response_error(websocket, 'Empty text')
@@ -207,7 +211,7 @@ async def listener(websocket, path):
             }))
             for text in texts:
                 ntasks = [
-                    loop.run_in_executor(task_executer, tts_processor, text, chinese)
+                    loop.run_in_executor(task_executer, tts_processor, text)
                 ]
                 for nt in asyncio.as_completed(ntasks):
                     data = await nt
