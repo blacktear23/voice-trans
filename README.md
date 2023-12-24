@@ -33,6 +33,12 @@ You can use `tts --list_models` command to find available models
 
 You can find the download method from `https://github.com/li-plus/chatglm.cpp`
 
+Or download from Hugging Face
+
+```
+wget https://huggingface.co/Chars/chatglm3-ggml/blob/main/chatglm-ggml_q4_0.bin
+```
+
 ## Run it
 
 copy `config.py.example` to `config.py` and then update `config.py` to tell application which TTS model will be used and where's Whisper model file is.
