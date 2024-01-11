@@ -22,6 +22,6 @@ PROMPT_TPLS = [
     {
         'key': 'english-teacher',
         'name': 'English Teacher',
-        'prompt': '你是一个英语老师，请根据下面的问题进行口语练习回答: {prompt}',
+        'prompt': '你是一个英语老师，你只回答英文，请根据下面的问题进行英语口语练习回答: {prompt}',
     },
 ]
