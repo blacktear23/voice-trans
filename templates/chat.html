@@ -224,6 +224,7 @@ $(function() {
         $('#tts-text').val(ev);
         iprompt.val('');
         sbtn.removeAttr('disabled');
+        sbtn.html('<i class="bi bi-send-fill"></i>')
         iprompt.removeAttr('disabled');
         if (is_auto_play()) {
             pbtn.click();
@@ -233,6 +234,7 @@ $(function() {
     setChatEventListener('onerror', function(err) {
         console.log(err);
         sbtn.removeAttr('disabled');
+        sbtn.html('<i class="bi bi-send-fill"></i>')
         iprompt.removeAttr('disabled');
     })
 
@@ -243,6 +245,7 @@ $(function() {
         }
         var prompt_tpl = tptpl.val();
         sbtn.attr('disabled', 'disabled');
+        sbtn.html(loading_icon());
         iprompt.attr('disabled', 'disabled');
         add_message('User', sprompt);
         chat_message(sprompt, prompt_tpl);
