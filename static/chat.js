@@ -23,6 +23,28 @@ function chat_message(message, tpl) {
     });
 }
 
+function chat_messages(prompts, tpl) {
+    submit_chats(prompts, tpl).then((resp) => {
+        if (resp.status == 200) {
+            const data = resp.data;
+            const text = data.text;
+            if (onChatText !== null) {
+                onChatText(text);
+            }
+        } else {
+            console.log('Error');
+            if (onChatError !== null) {
+                onChatError(data);
+            }
+        }
+    }).catch((err) => {
+        console.log(err);
+        if (onChatError !== null) {
+            onChatError(err);
+        }
+    });
+}
+
 function setChatEventListener(event, handler) {
     if (event === 'ontext') {
         onChatText = handler;

@@ -100,6 +100,7 @@ $(function() {
     if (ws_port === 444 || ws_port === 1) {
         ws_port = 443;
     }
+    var chat_history = [];
 
     function load_prompt_templates(callback) {
         get_prompt_templates().then((resp) => {
@@ -192,7 +193,17 @@ $(function() {
         startPlaying = false;
     });
 
+    function render_chat_messages() {
+
+    }
+
     function add_message(prefix, msg) {
+        if (prefix === 'User') {
+            chat_history.push({'role': 'user', 'content': msg});
+        } else if (prefix === 'AI') {
+            chat_history.push({'role': 'assistant', 'content': msg});
+        }
+        render_chat_messages();
         var mtxt = tout.val();
         var item = prefix + ': ' + msg + '\n';
         mtxt += item;
@@ -248,7 +259,8 @@ $(function() {
         sbtn.html(loading_icon());
         iprompt.attr('disabled', 'disabled');
         add_message('User', sprompt);
-        chat_message(sprompt, prompt_tpl);
+        // chat_message(sprompt, prompt_tpl);
+        chat_messages(chat_history, prompt_tpl);
     });
 
     iprompt.keypress(function(e) {

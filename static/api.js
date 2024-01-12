@@ -10,6 +10,10 @@ function submit_chat(text, tpl) {
     return axios.post('/chat_msg', {'prompt': text, 'prompt_template': tpl});
 }
 
+function submit_chats(prompts, tpl) {
+    return axios.post('/chat_msgs', {'prompts': prompts, 'prompt_template': tpl});
+}
+
 function get_prompt_templates() {
     return axios.get('/prompt_templates');
 }
