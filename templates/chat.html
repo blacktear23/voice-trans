@@ -18,6 +18,15 @@
     <script src="/static/player.js"></script>
     <!-- Chat -->
     <script src="/static/chat.js"></script>
+<style>
+.chat-msg-card {
+    margin-top: 7px;
+}
+
+.chat-msg-body {
+    padding: 7px;
+}
+</style>
 </head>
 <body>
     <div class="container" style="margin: 0px 0px 0px 0px; max-width:100%">
@@ -65,8 +74,12 @@
             </div>
         </div>
         <div class="row" style="height: 81%; margin-top: 6px; margin-left: 1px; margin-right: 1px;">
+            <div id="msg-area" class="card" style="width:100%;height:100%;overflow-y:scroll;">
+            </div>
+            <span style="display:none;">
             <textarea class="form-control" id="output" style="width: 100%; height: 100%;"></textarea>
             <input id="tts-text" type="hidden"/>
+            </span>
         </div>
         <div class="row" style="margin-top: 10px;">
             <div class="text-center col-12">
@@ -89,13 +102,13 @@
 <script>
 $(function() {
     var rbtn = $('#speech-btn');
-    var tout = $('#output');
     var sbtn = $('#submit-btn');
     var pbtn = $('#play-btn');
     var spbptpl = $('#prebuild-prompt-template');
     var tptpl = $('#prompt-template');
     var iprompt = $('#prompt');
     var startPlaying = false;
+    var msg_area = $('#msg-area');
     var ws_port = window.location.port - 0 + 1;
     if (ws_port === 444 || ws_port === 1) {
         ws_port = 443;
@@ -194,7 +207,38 @@ $(function() {
     });
 
     function render_chat_messages() {
+        var html = '';
+        for (const msg of chat_history) {
+            html += render_chat_msg(msg);
+        }
+        msg_area.html(html);
+        $("#msg-area").scrollTop($("#msg-area")[0].scrollHeight);
+    }
 
+    function render_chat_msg(msg) {
+        if (msg['role'] === 'user') {
+            return render_user_chat_msg(msg['content']);
+        } else if (msg['role'] === 'assistant') {
+            return render_ai_chat_msg(msg['content']);
+        }
+        return '';
+    }
+
+    function render_user_chat_msg(content) {
+        var html = '<div class="card border-primary chat-msg-card"><div class="card-body chat-msg-body"><span class="text-primary"><i class="bi bi-person"></i>:&nbsp;</span>';
+        html += content.replaceAll('\n', '<br/>\n');
+        html += '</div></div>\n';
+        return html;
+    }
+
+    function render_ai_chat_msg(content) {
+        var html = '<div class="card border-success chat-msg-card"><div class="card-body chat-msg-body"><span class="text-success"><i class="bi bi-stars"></i>:&nbsp;</span>';
+        console.log(content);
+        const cc = content.replaceAll('\n', '<br />\n');
+        console.log(cc);
+        html += cc;
+        html += '</div></div>\n';
+        return html;
     }
 
     function add_message(prefix, msg) {
@@ -204,10 +248,6 @@ $(function() {
             chat_history.push({'role': 'assistant', 'content': msg});
         }
         render_chat_messages();
-        var mtxt = tout.val();
-        var item = prefix + ': ' + msg + '\n';
-        mtxt += item;
-        tout.val(mtxt);
     }
 
     spbptpl.on('change', function() {
