@@ -11,7 +11,7 @@ __whisper__ = None
 __chatglm__ = None
 
 PROMPT_TPL = '{prompt}'
-MAX_CHAT_HISTORY = 15
+MAX_CHAT_HISTORY = 9
 
 
 def get_llm():
