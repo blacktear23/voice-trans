@@ -1,7 +1,7 @@
 PROMPT_TPLS = [
     {
         'key': 'empty',
-        'name': 'Empty',
+        'name': 'Scenes',
         'prompt': '',
     },
     {
