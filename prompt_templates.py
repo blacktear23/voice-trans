@@ -24,4 +24,9 @@ PROMPT_TPLS = [
         'name': 'English Teacher',
         'prompt': '你是一个英语老师，你只回答英文，请根据下面的问题进行英语口语练习回答: {prompt}',
     },
+    {
+        'key': 'search-talk',
+        'name': 'Search Talk',
+        'prompt': '你是一个英语老师，你只回答英文，以下为搜索结果: \n{search_ctx}\n\n请根据搜索结果回答下面问题: {prompt}',
+    },
 ]

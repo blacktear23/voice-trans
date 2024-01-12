@@ -1,5 +1,6 @@
 import config
 import logging
+import requests
 from datetime import datetime
 from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template, redirect
@@ -106,9 +107,24 @@ def prompt_tpls():
 
 
 def apply_template(prompt, prompt_tpl):
+    if '{search_ctx}' in prompt_tpl:
+        search_result = request_search_result(prompt)
+        if '{prompt}' in prompt_tpl:
+            return prompt_tpl.format(search_ctx=search_result, prompt=prompt)
+        else:
+            return prompt_tpl.format(search_ctx=search_result) + prompt
     if '{prompt}' in prompt_tpl:
         return prompt_tpl.replace('{prompt}', prompt)
     return prompt_tpl + prompt
+
+
+def request_search_result(query):
+    if not config.ENABLE_SEARCH:
+        return 'Nothing'
+    resp = requests.post(config.SEARCH_API, data=json.dumps({'query': query}), headers={'Content-Type': 'application/json'})
+    rjson = resp.json()
+    ret = [i.get('desc', '') for i in rjson]
+    return '\n'.join(ret)
 
 
 def generate_chat_response_by_messages(prompts, prompt_tpl):
