@@ -51,6 +51,9 @@ $(function() {
     var tout = $('#output');
     var startPlaying = false;
     var ws_port = window.location.port - 0 + 1;
+    if (ws_port === 444 || ws_port === 1) {
+        ws_port = 443;
+    }
 
     setSpeechEventListener('ontext', function(ev) {
         console.log(ev);
@@ -96,7 +99,10 @@ $(function() {
         if (text === '') {
             return;
         }
-        const url = 'ws://' + location.hostname + ':' + ws_port + '/tts';
+        var url = 'ws://' + location.hostname + ':' + ws_port + '/tts';
+        if (ws_port === 443) {
+            url = 'wss://' + location.hostname + '/tts';
+        }
         if (startPlaying) {
             console.log('Call stop play');
             stopPlay();
