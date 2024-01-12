@@ -22,30 +22,45 @@
 <body>
     <div class="container" style="margin: 0px 0px 0px 0px; max-width:100%">
         <div class="row text-center">
-            <div class="col-5">
-                <h1>Voice Chat</h1>
-            </div>
-            <div class="col-7">
-                <div class="row" style="margin-top:8px;">
-                    <div class="col-8">
-                        <!--<label for="prompt-template" class="form-label">Scenes</label>-->
-                        <select class="form-select form-select-sm" id="prebuild-prompt-template" aria-label="Empty">
-                          <option value="empty" selected>Empty</option>
-                          <option value="trans-eng">Translate To English</option>
-                          <option value="trans-chn">Translate To Chinese</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-auto">
-                        <div class="form-check form-switch">
-                          <input class="form-check-input" type="checkbox" role="switch" id="auto-play" checked="checked">
-                          <label class="form-check-label" for="auto-play">Auto Play</label>
-                        </div>
-                    </div>
-                    <div class="col-4" style="display:none">
-                        <textarea class="form-control" id="prompt-template" rows="1" style="width: 100%; height: 100%"></textarea>
-                    </div>
+            <div class="col-12">
+                <h1 style="display:inline-block;">Voice Chat</h1>
+                <div class="dropdown float-end" style="margin-top: 10px;">
+                    <button class="btn btn-outline-default dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                    <ul class="dropdown-menu" style="width: 300px;">
+                        <li>
+                            <div class="row align-items-center">
+                                <div class="col-auto" style="margin-left:15px;">
+                                    <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" role="switch" id="auto-play" checked="checked">
+                                      <label class="form-check-label" for="auto-play">Auto Play</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li style="margin-top: 5px;">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto" style="margin-top:15px;margin-left:15px;">
+                                    <label for="prompt-template" class="form-label">Scenes</label>
+                                </div>
+                                <div class="col-auto">
+                                    <select class="form-select form-select-sm" id="prebuild-prompt-template" aria-label="Empty">
+                                      <option value="empty" selected>Empty</option>
+                                      <option value="trans-eng">Translate To English</option>
+                                      <option value="trans-chn">Translate To Chinese</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </li>
+                        <li style="margin-top: 5px;">
+                            <div class="row align-items-center" style="width:100%">
+                                <div class="col-12" style="margin-left:15px;width:100%;padding-right:20px;">
+                                    <textarea class="form-control" id="prompt-template" rows="3" style="width: 100%; height: 100%"></textarea>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -86,7 +101,7 @@ $(function() {
         ws_port = 443;
     }
 
-    function load_prompt_templates() {
+    function load_prompt_templates(callback) {
         get_prompt_templates().then((resp) => {
             if (resp.status == 200) {
                 const tpls = resp.data;
@@ -105,6 +120,9 @@ $(function() {
                     html += '<option value="' + tpl.key + '"' + checked_str + '>' + tpl.name + '</option>'
                 }
                 $('#prebuild-prompt-template').html(html);
+                if (callback) {
+                    callback();
+                }
             } else {
                 console.log('Error');
             }
@@ -116,6 +134,34 @@ $(function() {
 
     function is_auto_play() {
         return $('#auto-play').is(':checked');
+    }
+
+    function loading_icon() {
+        var html = '<div class="spinner-border spinner-border-sm" role="status">';
+        html += '<span class="visually-hidden">Loading...</span>';
+        html += '</div>';
+        return html;
+    }
+
+    function update_local_settings(key, value) {
+        localStorage.setItem(key, value);
+    }
+
+    function load_local_settings() {
+        const ap_val = localStorage.getItem('auto-play');
+        if (ap_val !== null) {
+            if (ap_val) {
+                $('#auto-play').attr('checked', 'checked');
+            } else {
+                $('#auto-play').removeAttr('checked');
+            }
+        }
+        const pt_val = localStorage.getItem('prompt-template');
+        if (pt_val !== null) {
+            const ref = $('#prebuild-prompt-template');
+            ref.val(pt_val);
+            ref.change();
+        }
     }
 
     setSpeechEventListener('ontext', function(ev) {
@@ -133,7 +179,7 @@ $(function() {
 
     setSpeechEventListener('onuploading', function() {
         // Loading
-        rbtn.html('&nbsp;<i class="bi bi-arrow-repeat"></i>&nbsp;')
+        rbtn.html(loading_icon());
         rbtn.attr('disabled', 'disabled');
     });
 
@@ -159,6 +205,7 @@ $(function() {
         if (ptpl !== null) {
             tptpl.val(ptpl);
         }
+        update_local_settings('prompt-template', value);
     });
 
     rbtn.on('click', function() {
@@ -229,14 +276,21 @@ $(function() {
             if (msg.trim() === '') {
                 return
             }
-            pbtn.html('&nbsp;<i class="bi bi-arrow-repeat"></i>&nbsp;');
+            pbtn.html(loading_icon());
             startPlay(url, {'text': msg, 'chinese': true});
             startPlaying = true;
         }
     }
 
     // Preload web page
-    load_prompt_templates();
+    load_prompt_templates(function() {
+        load_local_settings();
+    });
+
+    $('#auto-play').on('change', function() {
+        const val = is_auto_play();
+        update_local_settings('auto-play', val);
+    })
 });
 </script>
 </body>

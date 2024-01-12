@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Voice Translator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="/static/bootstrap.min.css" rel="stylesheet"/>
     <link href="/static/icons/bootstrap-icons.min.css" rel="stylesheet"/>
     <!-- Libs -->
@@ -21,25 +22,33 @@
         <div class="row">
             <h1>Voice Translator</h1>
         </div>
-        <div class="row" style="height: 60%">
+        <div class="row" style="height: 81%">
             <textarea class="form-control" id="output" style="width: 100%; height: 100%"></textarea>
         </div>
         <div class="row" style="margin-top: 10px;">
-            <div class="text-center">
-                <button id="speech-btn" type="button" class="btn btn-primary" style="width: 200px;">
-                    Record
-                    <i class="bi bi-mic-fill"></i>
-                </button>
-                <button id="play-btn" type="button" class="btn btn-secondary" style="width: 100px;margin-left: 5px;">
-                    Play
-                    <i class="bi bi-play-fill"></i>
-                </button>
-                <label for="language" class="form-label" style="margin-left: 15px;">Speech Language:</label>
-                <select class="form-select form-select-sm" id="language" aria-label="Empty" style="width: 100px;display:inline-block;">
-                          <option value="auto" selected>Auto</option>
-                          <option value="zh">Chinese</option>
-                          <option value="en">English</option>
-                </select>
+            <div class="text-center col-12">
+                <div class="row align-items-center">
+                    <div class="col-5">
+                        <button id="speech-btn" type="button" class="btn btn-primary" style="width:100%;">
+                            Record
+                            <i class="bi bi-mic-fill"></i>
+                        </button>
+                    </div>
+                    <div class="col-3">
+                        <button id="play-btn" type="button" class="btn btn-secondary" style="width:100%;">
+                            Play
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <label for="language" class="form-label" style="margin-left: 15px;">Speech Language:</label>
+                        <select class="form-select form-select-sm" id="language" aria-label="Empty" style="width: 100px;display:inline-block;">
+                                  <option value="auto" selected>Auto</option>
+                                  <option value="zh">Chinese</option>
+                                  <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
