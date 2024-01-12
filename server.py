@@ -130,7 +130,7 @@ def request_search_result(query):
         idx += 1
         title = i.get('title', '')
         desc = i.get('desc', '')
-        item = f'{idx}. Title: {title}; {desc}'
+        item = f'{idx}. Title: {title}\n{desc}'
         ret.append(item)
     return '\n'.join(ret)
 
