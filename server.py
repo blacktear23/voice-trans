@@ -124,7 +124,14 @@ def request_search_result(query):
         return 'Nothing'
     resp = requests.post(config.SEARCH_API, data=json.dumps({'query': query}), headers={'Content-Type': 'application/json'})
     rjson = resp.json()
-    ret = [i.get('desc', '') for i in rjson[0:3]]
+    ret = []
+    idx = 0
+    for i in rjson[0:3]:
+        idx += 1
+        title = i.get('title', '')
+        desc = i.get('desc', '')
+        item = f'{idx}. Title: {title}; {desc}'
+        ret.append(item)
     return '\n'.join(ret)
 
 
