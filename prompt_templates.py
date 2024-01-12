@@ -27,6 +27,6 @@ PROMPT_TPLS = [
     {
         'key': 'search-talk',
         'name': 'Search Talk',
-        'prompt': '你是一个英语老师，你只回答英文，以下为搜索结果: \n{search_ctx}\n\n请根据搜索结果回答下面问题: {prompt}',
+        'prompt': '你是一个英语老师，你只回答英文，以下为搜索结果: \n{search_ctx}\n\n请根据搜索结果回答下面问题，如果搜索结果没有答案直接回答问题即可，以下为问题:\n{prompt}',
     },
 ]
