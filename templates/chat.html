@@ -63,6 +63,17 @@
                             </div>
                         </li>
                         <li style="margin-top: 5px;">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto" style="margin-top:15px;margin-left:15px;">
+                                    <label for="prompt-template" class="form-label">Histories</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input class="form-control" id="prompt-histories" value="1" style="width:193px;"></input>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li style="margin-top: 5px;">
                             <div class="row align-items-center" style="width:100%">
                                 <div class="col-12" style="margin-left:15px;width:100%;padding-right:20px;">
                                     <textarea class="form-control" id="prompt-template" rows="3" style="width: 100%; height: 100%"></textarea>
@@ -77,7 +88,6 @@
             <div id="msg-area" class="card" style="width:100%;height:100%;overflow-y:scroll;">
             </div>
             <span style="display:none;">
-            <textarea class="form-control" id="output" style="width: 100%; height: 100%;"></textarea>
             <input id="tts-text" type="hidden"/>
             </span>
         </div>
@@ -105,6 +115,7 @@ $(function() {
     var sbtn = $('#submit-btn');
     var pbtn = $('#play-btn');
     var spbptpl = $('#prebuild-prompt-template');
+    var nhist = $('#prompt-histories');
     var tptpl = $('#prompt-template');
     var iprompt = $('#prompt');
     var startPlaying = false;
@@ -125,7 +136,7 @@ $(function() {
                 var html = ''
                 var first = true;
                 for (var tpl of tpls) {
-                    prebuild_prompt_templates[tpl.key] = tpl.prompt;
+                    prebuild_prompt_templates[tpl.key] = [tpl.prompt, tpl.history];
                     var checked_str = '';
                     if (first) {
                         checked_str = 'selected';
@@ -254,7 +265,8 @@ $(function() {
         var value = spbptpl.val();
         var ptpl = get_prebuild_prompt_template(value);
         if (ptpl !== null) {
-            tptpl.val(ptpl);
+            tptpl.val(ptpl[0]);
+            nhist.val(ptpl[1]);
         }
         update_local_settings('prompt-template', value);
     });
@@ -295,12 +307,13 @@ $(function() {
             return;
         }
         var prompt_tpl = tptpl.val();
+        var histories = nhist.val();
         sbtn.attr('disabled', 'disabled');
         sbtn.html(loading_icon());
         iprompt.attr('disabled', 'disabled');
         add_message('User', sprompt);
         // chat_message(sprompt, prompt_tpl);
-        chat_messages(chat_history, prompt_tpl);
+        chat_messages(chat_history, prompt_tpl, histories);
     });
 
     iprompt.keypress(function(e) {

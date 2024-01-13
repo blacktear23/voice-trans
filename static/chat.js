@@ -23,8 +23,8 @@ function chat_message(message, tpl) {
     });
 }
 
-function chat_messages(prompts, tpl) {
-    submit_chats(prompts, tpl).then((resp) => {
+function chat_messages(prompts, tpl, histories) {
+    submit_chats(prompts, tpl, histories).then((resp) => {
         if (resp.status == 200) {
             const data = resp.data;
             const text = data.text;
@@ -54,9 +54,9 @@ function setChatEventListener(event, handler) {
 }
 
 var prebuild_prompt_templates = {
-    'empty': '',
-    'trans-eng': '请把以下句子翻译成英文: {prompt}',
-    'trans-chn': '请把以下句子翻译成中文: {prompt}',
+    'empty': ['', 5],
+    'trans-eng': ['请把以下句子翻译成英文: {prompt}', 1],
+    'trans-chn': ['请把以下句子翻译成中文: {prompt}', 1],
 }
 
 function get_prebuild_prompt_template(key) {

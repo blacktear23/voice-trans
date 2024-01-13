@@ -98,7 +98,13 @@ def chat_msgs():
     data = request.json
     prompts = data.get('prompts', [])
     prompt_tpl = data.get('prompt_template', PROMPT_TPL)
-    resp = generate_chat_response_by_messages(prompts, prompt_tpl)
+    num_histories = 1
+    try:
+        num_histories = int(data.get('num_history', 1))
+        num_histories = min(num_histories, MAX_CHAT_HISTORY)
+    except Exception:
+        pass
+    resp = generate_chat_response_by_messages(prompts, prompt_tpl, num_histories)
     return jsonify({'text': resp})
 
 
@@ -135,13 +141,13 @@ def request_search_result(query):
     return '\n'.join(ret)
 
 
-def generate_chat_response_by_messages(prompts, prompt_tpl):
+def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories):
     try:
         import chatglm_cpp
     except Exception:
         return 'Cannot Load ChatGLM'
 
-    msgs = process_prompts(prompts, prompt_tpl)
+    msgs = process_prompts(prompts, prompt_tpl, num_histories)
     if len(msgs) == 0:
         return ''
 
@@ -201,7 +207,7 @@ def generate_chat_response(prompt, prompt_tpl):
     return output
 
 
-def process_prompts(prompts, prompt_tpl):
+def process_prompts(prompts, prompt_tpl, num_histories):
     import chatglm_cpp
     ret = []
     if len(prompts) == 0:
@@ -224,8 +230,8 @@ def process_prompts(prompts, prompt_tpl):
             ret.append(item)
 
     ret.append(chatglm_cpp.ChatMessage('user', last_content))
-    if len(ret) > MAX_CHAT_HISTORY:
-        spos = len(ret) - MAX_CHAT_HISTORY
+    if len(ret) > num_histories:
+        spos = len(ret) - num_histories
         return ret[spos:]
     return ret
 
