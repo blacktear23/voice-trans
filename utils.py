@@ -4,8 +4,9 @@ import jieba
 
 re_han = re.compile('([﹒﹔﹖﹗．；。！？]["’”」』]{0,2}|：(?=["‘“「『]{1,2}|$))')
 re_en = re.compile('([.?!;])')
-re_en_chars = re.compile('[a-zA-Z0-9]')
+re_en_chars = re.compile('[a-zA-Z]')
 re_chn_chars = re.compile(u'[\u4e00-\u9fff]')
+re_num_chars = re.compile('[0-9]')
 
 
 def split_sentences(text):
@@ -28,6 +29,10 @@ def split_sentences(text):
         curr_chn = False
         if re_chn_chars.search(sword):
             curr_chn = True
+
+        # If number follow prev mode
+        if re_num_chars.search(sword):
+            curr_chn = prev_chn
 
         if prev_chn is None:
             prev_chn = curr_chn
