@@ -9,6 +9,7 @@ import asyncio
 import logging
 import websockets
 import hashlib
+import utils
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 
@@ -88,11 +89,13 @@ def text_spliter_processor(text):
     has_chinese = check_message_has_chinese(text)
     if has_chinese:
         tts = get_chinese_tts()
+        texts = utils.split_sentences(text)
     else:
         tts = get_tts()
+        texts = tts.split_sentences(text)
     resp = {
         'sample_rate': tts.get_sample_rate(),
-        'texts': tts.split_sentences(text),
+        'texts': texts,
         'channels': 1,
     }
     print(resp)
