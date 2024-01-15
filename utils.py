@@ -38,16 +38,17 @@ def split_sentences(text):
             prev_chn = curr_chn
 
         if prev_chn != curr_chn:
-            last_char = sentence[-1]
-            if re_chn_chars.search(last_char) or re_num_chars.search(last_char) or re_en_chars.search(last_char):
-                if prev_chn:
-                    sentence += '。'
-                else:
-                    sentence += '.'
-            ret.append(sentence)
-            sentence = word
-            prev_chn = curr_chn
-            continue
+            if len(sentence) > 0:
+                last_char = sentence[-1]
+                if re_chn_chars.search(last_char) or re_num_chars.search(last_char) or re_en_chars.search(last_char):
+                    if prev_chn:
+                        sentence += '。'
+                    else:
+                        sentence += '.'
+                ret.append(sentence)
+                sentence = word
+                prev_chn = curr_chn
+                continue
         sentence += word
         prev_chn = curr_chn
 
