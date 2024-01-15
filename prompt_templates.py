@@ -1,9 +1,9 @@
 PROMPT_TPLS = [
     {
-        'key': 'empty',
-        'name': 'Scenes',
-        'prompt': '',
-        'history': 1,
+        'key': 'chat',
+        'name': 'Chat',
+        'prompt': '你是一个聊天机器人，请根据以下问题进行对话: {prompt}',
+        'history': 9,
     },
     {
         'key': 'trans-eng',
