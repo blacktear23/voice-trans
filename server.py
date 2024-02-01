@@ -6,14 +6,18 @@ from datetime import datetime
 from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template, redirect
 from prompt_templates import PROMPT_TPLS
+from whisper_api import WhisperAPI
 
 
 app = Flask(__name__)
 __whisper__ = None
 __chatglm__ = None
+__whisper_api__ = None
 
 PROMPT_TPL = '{prompt}'
 MAX_CHAT_HISTORY = 9
+WHISPER_API_HOST = '101.36.226.223'
+WHISPER_API_PORT = 8888
 
 
 def get_llm():
@@ -38,6 +42,13 @@ def get_whisper_engine(language=None):
     return __whisper__
 
 
+def get_whisper_api():
+    global __whisper_api__
+    if __whisper_api__ is None:
+        __whisper_api__ = WhisperAPI(WHISPER_API_HOST, WHISPER_API_PORT)
+    return __whisper_api__
+
+
 @app.route('/')
 def index():
     return redirect('/chat')
@@ -57,7 +68,7 @@ def speech_to_text_translate():
     print(language)
     print(request.form)
     try:
-        whisper = get_whisper_engine()
+        whisper = get_whisper_api()
         resp = whisper.translate(wav_file, 'translate into English')
         return jsonify(resp)
     except Exception as e:
@@ -71,8 +82,8 @@ def speech_to_text_transcribe():
     if wav_file is None:
         return 'Require file parameter', 400
     try:
-        whisper = get_whisper_engine()
-        resp = whisper.transcribe(wav_file, language='auto')
+        whisper = get_whisper_api()
+        resp = whisper.transcribe(wav_file, lang='auto')
         return jsonify(resp)
     except Exception as e:
         logging.exception(e)
