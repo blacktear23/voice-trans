@@ -1,28 +1,6 @@
 var onChatText = null;
 var onChatError = null;
 
-function chat_message(message, tpl) {
-    submit_chat(message, tpl).then((resp) => {
-        if (resp.status == 200) {
-            const data = resp.data;
-            const text = data.text;
-            if (onChatText !== null) {
-                onChatText(text);
-            }
-        } else {
-            console.log('Error');
-            if (onChatError !== null) {
-                onChatError(data);
-            }
-        }
-    }).catch((err) => {
-        console.log(err);
-        if (onChatError !== null) {
-            onChatError(err);
-        }
-    });
-}
-
 function chat_messages(prompts, tpl, histories) {
     submit_chats(prompts, tpl, histories).then((resp) => {
         if (resp.status == 200) {

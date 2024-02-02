@@ -7,17 +7,17 @@ from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template, redirect
 from prompt_templates import PROMPT_TPLS
 from whisper_api import WhisperAPI
+from chatglm_api import ChatGLMAPI
 
 
 app = Flask(__name__)
 __whisper__ = None
 __chatglm__ = None
 __whisper_api__ = None
+__glmapi__ = None
 
 PROMPT_TPL = '{prompt}'
 MAX_CHAT_HISTORY = 9
-WHISPER_API_HOST = '101.36.226.223'
-WHISPER_API_PORT = 8888
 
 
 def get_llm():
@@ -45,8 +45,15 @@ def get_whisper_engine(language=None):
 def get_whisper_api():
     global __whisper_api__
     if __whisper_api__ is None:
-        __whisper_api__ = WhisperAPI(WHISPER_API_HOST, WHISPER_API_PORT)
+        __whisper_api__ = WhisperAPI(config.WHISPER_API_HOST, config.WHISPER_API_PORT)
     return __whisper_api__
+
+
+def get_glm_api():
+    global __glmapi__
+    if __glmapi__ is None:
+        __glmapi__ = ChatGLMAPI(config.CHATGLM_API_HOST, config.CHATGLM_API_PORT)
+    return __glmapi__
 
 
 @app.route('/')
@@ -95,15 +102,6 @@ def chat():
     return render_template('chat.html')
 
 
-@app.route('/chat_msg', methods=['POST'])
-def chat_msg():
-    data = request.json
-    prompt = data['prompt']
-    prompt_tpl = data.get('prompt_template', PROMPT_TPL)
-    resp = generate_chat_response(prompt, prompt_tpl)
-    return jsonify({'text': resp})
-
-
 @app.route('/chat_msgs', methods=['POST'])
 def chat_msgs():
     data = request.json
@@ -115,7 +113,10 @@ def chat_msgs():
         num_histories = min(num_histories, MAX_CHAT_HISTORY)
     except Exception:
         pass
-    resp = generate_chat_response_by_messages(prompts, prompt_tpl, num_histories)
+    use_api = False
+    if config.CHATGLM_API_HOST != '':
+        use_api = True
+    resp = generate_chat_response_by_messages(prompts, prompt_tpl, num_histories, use_api)
     return jsonify({'text': resp})
 
 
@@ -152,18 +153,21 @@ def request_search_result(query):
     return '\n'.join(ret)
 
 
-def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories):
+def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories, use_api=False):
     try:
         import chatglm_cpp
     except Exception:
         return 'Cannot Load ChatGLM'
 
-    msgs = process_prompts(prompts, prompt_tpl, num_histories)
+    msgs = process_prompts(prompts, prompt_tpl, num_histories, use_api)
     if len(msgs) == 0:
         return ''
 
-    print(msgs)
-    llm = get_llm()
+    llm = None
+    if use_api:
+        llm = get_glm_api()
+    else:
+        llm = get_llm()
     params = {
         'max_length': 4096,
         'max_context_length': 2048,
@@ -174,51 +178,22 @@ def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories):
         'repetition_penalty': 1.0,
         'stream': True,
     }
-    output = ''
-    first = True
-    for chunk in llm.chat(msgs, **params):
-        if first and '\n' in chunk.content:
-            first = False
-            output += chunk.content.removeprefix('\n')
-        else:
-            output += chunk.content
-    return output
+    if use_api:
+        resp = llm.chat(msgs, params)
+        return resp.get('text', '')
+    else:
+        output = ''
+        first = True
+        for chunk in llm.chat(msgs, **params):
+            if first and '\n' in chunk.content:
+                first = False
+                output += chunk.content.removeprefix('\n')
+            else:
+                output += chunk.content
+        return output
 
 
-def generate_chat_response(prompt, prompt_tpl):
-    try:
-        import chatglm_cpp
-    except Exception:
-        return 'Cannot Load ChatGLM'
-
-    prompt = apply_template(prompt, prompt_tpl)
-
-    llm = get_llm()
-    params = {
-        'max_length': 4096,
-        'max_context_length': 2048,
-        'do_sample': True,
-        'top_k': 0,
-        'top_p': 0.7,
-        'temperature': 0.95,
-        'repetition_penalty': 1.0,
-        'stream': True,
-    }
-    msgs = [
-        chatglm_cpp.ChatMessage('user', prompt)
-    ]
-    output = ''
-    first = True
-    for chunk in llm.chat(msgs, **params):
-        if first and '\n' in chunk.content:
-            first = False
-            output += chunk.content.removeprefix('\n')
-        else:
-            output += chunk.content
-    return output
-
-
-def process_prompts(prompts, prompt_tpl, num_histories):
+def process_prompts(prompts, prompt_tpl, num_histories, use_api=False):
     import chatglm_cpp
     ret = []
     if len(prompts) == 0:
@@ -233,14 +208,23 @@ def process_prompts(prompts, prompt_tpl, num_histories):
         role = prompt.get('role')
         item = None
         if role == 'user':
-            item = chatglm_cpp.ChatMessage('user', prompt.get('content', ''))
+            if use_api:
+                item = {'role': 'user', 'content': prompt.get('content', '')}
+            else:
+                item = chatglm_cpp.ChatMessage('user', prompt.get('content', ''))
         elif role == 'assistant':
-            item = chatglm_cpp.ChatMessage('assistant', prompt.get('content', ''))
+            if use_api:
+                item = {'role': 'assistant', 'content': prompt.get('content', '')}
+            else:
+                item = chatglm_cpp.ChatMessage('assistant', prompt.get('content', ''))
 
         if item is not None:
             ret.append(item)
 
-    ret.append(chatglm_cpp.ChatMessage('user', last_content))
+    if use_api:
+        ret.append({'role': 'user', 'content': last_content})
+    else:
+        ret.append(chatglm_cpp.ChatMessage('user', last_content))
     if len(ret) > num_histories:
         spos = len(ret) - num_histories
         return ret[spos:]

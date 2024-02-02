@@ -2,3 +2,9 @@ WHISPER_MODEL_PATH = '/data/models/ggml-medium.bin'
 TTS_MODEL = 'tts_models/en/ljspeech/vits'
 CHINESE_TTS_MODEL = 'tts_models/zh-CN/baker/tacotron2-DDC-GST'
 LLM_MODEL_PATH = '/data/models/chatglm-ggml-32k.bin'
+
+WHISPER_API_HOST = ''
+WHISPER_API_PORT = 8888
+
+CHATGLM_API_HOST = ''
+CHATGLM_API_PORT = 8889
