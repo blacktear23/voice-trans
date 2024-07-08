@@ -3,3 +3,4 @@ config.py
 *.tmp
 *.txt
 .DS_Store
+.vscode
