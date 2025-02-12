@@ -23,7 +23,7 @@ def split_sentences(text):
             continue
 
         if re_chn_chars.search(sword) is None and re_en_chars.search(sword) is None:
-            sentence += word
+            sentence += word.strip()
             continue
 
         curr_chn = False
