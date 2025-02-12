@@ -60,4 +60,9 @@ def split_sentences(text):
             else:
                 sentence += '.'
         ret.append(sentence)
-    return ret
+    nret = []
+    for item in ret:
+        if re_chn_chars.match(item) and not item.endswith('。'):
+            item += '。'
+        nret.append(item)
+    return nret
