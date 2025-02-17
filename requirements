@@ -1,5 +1,7 @@
 Flask==3.0.0
 websockets==11.0.3
-whisper-cpp-python==0.2.0
+# whisper-cpp-python==0.2.0
+torch==2.1.0
+torchaudio==2.1.0
 TTS==0.20.6
-chatglm-cpp
+# chatglm-cpp
