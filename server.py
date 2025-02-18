@@ -3,43 +3,20 @@ import config
 import logging
 import requests
 from datetime import datetime
-from whisper_cpp_python import Whisper
 from flask import Flask, request, send_file, jsonify, render_template, redirect
 from prompt_templates import PROMPT_TPLS
 from whisper_api import WhisperAPI
 from chatglm_api import ChatGLMAPI
+from ollama_api import OllamaAPI
 
 
 app = Flask(__name__)
-__whisper__ = None
-__chatglm__ = None
 __whisper_api__ = None
 __glmapi__ = None
+__ollamaapi__ = None
 
 PROMPT_TPL = '{prompt}'
 MAX_CHAT_HISTORY = 9
-
-
-def get_llm():
-    global __chatglm__
-    if __chatglm__ is None:
-        try:
-            import chatglm_cpp
-            __chatglm__ = chatglm_cpp.Pipeline(config.LLM_MODEL_PATH)
-        except Exception:
-            pass
-    return __chatglm__
-
-
-def get_whisper_engine(language=None):
-    global __whisper__
-    if __whisper__ is None:
-        model = config.WHISPER_MODEL_PATH
-        __whisper__ = Whisper(model_path=model, n_threads=4)
-        __whisper__.params.language = 'auto'.encode('utf-8')
-    if language is not None:
-        __whisper__.params.language = language.encode('utf-8')
-    return __whisper__
 
 
 def get_whisper_api():
@@ -54,6 +31,13 @@ def get_glm_api():
     if __glmapi__ is None:
         __glmapi__ = ChatGLMAPI(config.CHATGLM_API_HOST, config.CHATGLM_API_PORT)
     return __glmapi__
+
+
+def get_ollama_api():
+    global __ollamaapi__
+    if __ollamaapi__ is None:
+        __ollamaapi__ = OllamaAPI(config.OLLAMA_API_HOST, config.OLLAMA_API_PORT, config.OLLAMA_API_MODEL)
+    return __ollamaapi__
 
 
 @app.route('/')
@@ -113,10 +97,7 @@ def chat_msgs():
         num_histories = min(num_histories, MAX_CHAT_HISTORY)
     except Exception:
         pass
-    use_api = False
-    if config.CHATGLM_API_HOST != '':
-        use_api = True
-    resp = generate_chat_response_by_messages(prompts, prompt_tpl, num_histories, use_api)
+    resp = generate_chat_response_by_messages(prompts, prompt_tpl, num_histories)
     return jsonify({'text': resp})
 
 
@@ -153,21 +134,12 @@ def request_search_result(query):
     return '\n'.join(ret)
 
 
-def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories, use_api=False):
-    try:
-        import chatglm_cpp
-    except Exception:
-        return 'Cannot Load ChatGLM'
-
-    msgs = process_prompts(prompts, prompt_tpl, num_histories, use_api)
+def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories):
+    msgs = process_prompts(prompts, prompt_tpl, num_histories)
     if len(msgs) == 0:
         return ''
 
-    llm = None
-    if use_api:
-        llm = get_glm_api()
-    else:
-        llm = get_llm()
+    llm = get_ollama_api()
     params = {
         'max_length': 4096,
         'max_context_length': 2048,
@@ -178,23 +150,11 @@ def generate_chat_response_by_messages(prompts, prompt_tpl, num_histories, use_a
         'repetition_penalty': 1.0,
         'stream': True,
     }
-    if use_api:
-        resp = llm.chat(msgs, params)
-        return resp.get('text', '')
-    else:
-        output = ''
-        first = True
-        for chunk in llm.chat(msgs, **params):
-            if first and '\n' in chunk.content:
-                first = False
-                output += chunk.content.removeprefix('\n')
-            else:
-                output += chunk.content
-        return output
+    resp = llm.chat(msgs, params)
+    return resp.get('content', '')
 
 
-def process_prompts(prompts, prompt_tpl, num_histories, use_api=False):
-    import chatglm_cpp
+def process_prompts(prompts, prompt_tpl, num_histories):
     ret = []
     if len(prompts) == 0:
         return ret
@@ -208,23 +168,14 @@ def process_prompts(prompts, prompt_tpl, num_histories, use_api=False):
         role = prompt.get('role')
         item = None
         if role == 'user':
-            if use_api:
-                item = {'role': 'user', 'content': prompt.get('content', '')}
-            else:
-                item = chatglm_cpp.ChatMessage('user', prompt.get('content', ''))
+            item = {'role': 'user', 'content': prompt.get('content', '')}
         elif role == 'assistant':
-            if use_api:
-                item = {'role': 'assistant', 'content': prompt.get('content', '')}
-            else:
-                item = chatglm_cpp.ChatMessage('assistant', prompt.get('content', ''))
+            item = {'role': 'assistant', 'content': prompt.get('content', '')}
 
         if item is not None:
             ret.append(item)
 
-    if use_api:
-        ret.append({'role': 'user', 'content': last_content})
-    else:
-        ret.append(chatglm_cpp.ChatMessage('user', last_content))
+    ret.append({'role': 'user', 'content': last_content})
     if len(ret) > num_histories:
         spos = len(ret) - num_histories
         return ret[spos:]

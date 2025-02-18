@@ -10,6 +10,7 @@
     <script src="/static/audio-recorder.js"></script>
     <script src="/static/pcm-player.js"></script>
     <script src="/static/bootstrap.bundle.min.js"></script>
+    <script src="/static/marked.min.js"></script>
     <!-- API -->
     <script src="/static/api.js?v1"></script>
     <!-- Voice Recorder -->
@@ -18,6 +19,7 @@
     <script src="/static/player.js?v1"></script>
     <!-- Chat -->
     <script src="/static/chat.js?v1"></script>
+    <!-- Marked -->
 <style>
 .chat-msg-card {
     margin-top: 7px;
@@ -236,19 +238,20 @@ $(function() {
     }
 
     function render_user_chat_msg(content) {
-        var html = '<div class="card border-primary chat-msg-card"><div class="card-body chat-msg-body"><span class="text-primary"><i class="bi bi-person"></i>:&nbsp;</span>';
+        var html = '<div class="card border-primary chat-msg-card"><div class="card-body chat-msg-body"><span class="text-primary" style="float:left;"><i class="bi bi-person"></i>:&nbsp;</span><div style="margin-left:30px;">';
         html += content.replaceAll('\n', '<br/>\n');
-        html += '</div></div>\n';
+        html += '</div></div></div>\n';
         return html;
     }
 
     function render_ai_chat_msg(content) {
-        var html = '<div class="card border-success chat-msg-card"><div class="card-body chat-msg-body"><span class="text-success"><i class="bi bi-stars"></i>:&nbsp;</span>';
+        var html = '<div class="card border-success chat-msg-card"><div class="card-body chat-msg-body"><span class="text-success" style="float:left;"><i class="bi bi-stars"></i>:&nbsp;</span><div style="margin-left:30px;">';
         console.log(content);
-        const cc = content.replaceAll('\n', '<br />\n');
+        // const cc = content.replaceAll('\n', '<br />\n');
+        const cc = marked.parse(content)
         console.log(cc);
         html += cc;
-        html += '</div></div>\n';
+        html += '</div></div></div>\n';
         return html;
     }
 
